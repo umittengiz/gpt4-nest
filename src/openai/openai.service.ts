@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { OpenaiPromptDto } from './dto/openai-prompt.dto';
+import { OpenaiGpt35PromptDto } from './dto/openai-gpt35-prompt.dto';
 import { OpenaiGpt4PromptDto } from './dto/openai-gpt4-prompt.dto';
 import axios from 'axios';
 // import { OpenaiConfig } from '../../config/openai.config';
@@ -23,6 +24,30 @@ export class OpenaiService {
       console.log("prompt: ", data.prompt, generatedResponse);
       // console.log(generatedResponse);
       return { response: generatedResponse };
+    } catch (error) {
+      console.error('Error calling OpenAI API:', error);
+      throw new Error('Failed to generate response from OpenAI API');
+    }
+  }
+
+  async generateGpt35(openaiGpt35PromptDto: OpenaiGpt35PromptDto) {
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.apiKey}`,
+    };
+
+    const data = {
+      messages: [{role: "user", content: openaiGpt35PromptDto.message}],
+      max_tokens: 256,
+      temperature: 0.7,
+      model: 'gpt-3.5-turbo'
+    };
+
+    try {
+      const response = await axios.post('https://api.openai.com/v1/chat/completions', data, { headers });
+      const generatedResponse = response.data.choices[0].message;
+      console.log("prompt:", data.messages[0].content, "\n", generatedResponse.content);
+      return { message: generatedResponse.content };
     } catch (error) {
       console.error('Error calling OpenAI API:', error);
       throw new Error('Failed to generate response from OpenAI API');
